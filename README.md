@@ -20,7 +20,7 @@ Entre sus funciones secundarias se encuentra:
 - Letras sincronizadas con las canciones
 - Ecualizador integrado.
 
-El proyecto toma inspiracion de otros proyectos de codigo abierto como Strawberry (https://github.com/strawberry-graphql/strawberry?tab=readme-ov-file) y el Y2mate (https://github.com/Simatwa/y2mate-api )
+El proyecto toma inspiracion de otros proyectos de codigo abierto como Strawberry (https://github.com/strawberrymusicplayer/strawberry) y el Y2mate (https://github.com/Simatwa/y2mate-api )
 
 ## Version Pre-Alpha
 Solo contara con una interfaz de linea de comandos (CLI), ademas solo sera usable en computadores personales y no en celulares moviles. Tendra funciones reducidas y se centrara en conseguir el objetivo principal, bajar musica de la web, almacenarla de forma organizada y personalizada en el almacenamiento local del dispositivo y permitir su reproduccion desde la app.
