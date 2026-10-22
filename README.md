@@ -1,5 +1,5 @@
 # Nombre por escucharse (Propongo "DejelaSonar.com" o "LetItSound.com")
-
+### Version de python : 3.13
 Reproductor musical local cuyo principal proposito es la descarga directa al dispositivo de musica de distintas fuentes usando la api yt-dlp (https://github.com/yt-dlp/yt-dlp).
 Entre sus principales funciones se encuentra: 
 - control sobre la manera en que se guardan los archivos en el almacenamiento del dispositivo
