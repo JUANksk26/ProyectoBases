@@ -1,5 +1,3 @@
-```sql
-
 USUARIO(
     id_usuario PK,
     nombre,
@@ -48,4 +46,4 @@ GENERO(
 CANCION_GENERO(
     id_cancion PK, FK  CANCION.id_cancion,
     id_genero PK, FK GENERO.id_genero
-	)```
+	
