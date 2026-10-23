@@ -1,9 +1,9 @@
 # Lista funciones de la base de datos.
 
-1. Funcion para agregar una nueva canción (Descubir o crear el vector que entrega la API)
-2. Crear una tabla que guarde los registros no aceptados
+1. (Samuel) Funcion para agregar una nueva canción (Descubir o crear el vector que entrega la API)
+2. (Samuel) Crear una tabla que guarde los registros no aceptados
 3. Función para eliminar resgistros
 4. Crear tabla que guarde las canciones, albums y artistas escuchados por el usuario
 5. Encontrar una manera de identificar el mismo archivo de canción y enviarlo a la tabla de registros no aceptados
-6. Esta parte del codigo tambien debe crear un directorio para guardar las canciones del usuario, teniendo en cuenta que, los albums y artistas, 
+6. (Samuel)Esta parte del codigo tambien debe crear un directorio para guardar las canciones del usuario, teniendo en cuenta que, los albums y artistas, 
 junto con las playlist creadas por el usuario deben ser directorios dentro de este
