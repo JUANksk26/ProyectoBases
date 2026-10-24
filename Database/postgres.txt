@@ -1,1 +1,0 @@
-Aqui va el Python conectado con postgresSQl
