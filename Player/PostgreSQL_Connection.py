@@ -3,10 +3,10 @@ import psycopg2
 #se crea una nueva instancia de conexion
 try:
     conn = psycopg2.connect( #creacion de la variable de CONNections
-        database = "letit",
+        database = "postgres",
         user = "postgres",
         host = "localhost",
-        password = 'postgres',
+        password = 'k3){"3SFQ7/n',
         port = 5432
     )
     print("Conexion exitosa")
