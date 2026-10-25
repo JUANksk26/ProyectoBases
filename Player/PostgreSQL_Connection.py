@@ -9,7 +9,7 @@ try:
         database = "postgres", # Podemos dejar el nombre por defecto de la base de datos en 'postgres'. O cambiarlo por el del proyecto en cuyo caso necesitaríamos cambiar esta funcion y crear una que defina una nueva base de datos.
         user = "postgres",
         host = "localhost",
-        password = 'postgres',
+        password = 'k3){"3SFQ7/n',
         port = 5432
     )
     print("Conexion exitosa")
