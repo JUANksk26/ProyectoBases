@@ -3,7 +3,7 @@ DB_config = {
     'host': 'localhost', # Espero que sea la funcion definitiva para conectarse a la base desde el reproductor, en este archivo ya se pueden hacer las consultas y las funciones para agregar y eliminar registros
     'database': 'postgres',
     'user': 'postgres',
-    'password': 'k3){"3SFQ7/n',
+    'password': 'k3){"3SFQ7/n', 
     'port': 5432
 }
 def get_connection():
