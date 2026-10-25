@@ -3,7 +3,7 @@ from psycopg2 import OperationalError
 
 #se crea una nueva instancia de conexion
 try:
-    conn = psycopg2.connect(
+    conn = psycopg2.connect( #creacion de la variable de CONNections
         database = "letit",
         user = "postgres",
         host = "localhost",
