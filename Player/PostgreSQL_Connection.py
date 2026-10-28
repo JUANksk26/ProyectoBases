@@ -3,10 +3,10 @@ import yt_dlp # libreria para bajar la musica con URL
 import os # libreria que permite sacar el nombre del SO usado
 from psycopg2 import OperationalError
 
-#se crea una nueva instancia de conexion
+# se crea una nueva instancia de conexion
 try:
-    conn = psycopg2.connect( #creacion de la variable de CONNections
-        database = "postgres", # Podemos dejar el nombre por defecto de la base de datos en 'postgres'. O cambiarlo por el del proyecto en cuyo caso necesitaríamos cambiar esta funcion y crear una que defina una nueva base de datos.
+    conn = psycopg2.connect( # creacion de la variable de CONNections
+        database = "postgres", # Nombre provisional para base de datos.
         user = "postgres",
         host = "localhost",
         password = 'k3){"3SFQ7/n',
@@ -18,29 +18,26 @@ except OperationalError as e:
 
 # funcion para bajar musica de la web a partir de una url dada por el usuario
 def descargarMusica(URL):
-    # metodo para agregar canciones al directorio (entender como funciona lo que devuelve la api y guardarlo en el directorio deseado)
-    
-    artistaCancion = ""
 
-    #esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
-    if os.name == 'posix': #los sistemas Unix (Linux/MacOS) devuelven esta cadena como nombre representativo
+    # esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
+    if os.name == 'posix': # los sistemas Unix (Linux/MacOS) devuelven esta cadena como nombre representativo
         ydl_opts = {
-            "format": "m4a/bestaudio/best",
-            "postprocessors": [{
+            "format": "mp3/bestaudio/best", # se descargan archivos mp3 de la mejor calidad posible. Prioriza compatibilidad sobre calidad
+            "postprocessors": [{            # tecnicamente esto el usuario podria modificarlo a voluntad en versiones futuras del proyecto
                 "key": "FFmpegExtractAudio",
-                "preferredcodec": "m4a",
+                "preferredcodec": "mp3",
             }],
             "paths": {
-                "home": "~/Downloads", #por ahora es una ruta fija
+                "home": "~/Downloads", # por ahora es una ruta fija
                 "temp": "/tmp/yt-dlp",
             },
         }
-    else: # el sistema de windows devuelve la cadena "nt" pero da igual en este caso
+    else: # confuracion para sistemas windows
         ydl_opts = {
-            "format": "m4a/bestaudio/best",
+            "format": "mp3/bestaudio/best",
             "postprocessors": [{
                 "key": "FFmpegExtractAudio",
-                "preferredcodec": "m4a",
+                "preferredcodec": "mp3",
             }],
             "paths": {
                 # poner direccion de windows. "home": "~/Downloads", cambiar la parte derecha
@@ -48,23 +45,46 @@ def descargarMusica(URL):
             },
         }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        error_code = ydl.download(URL)
-        informacion = ydl.extract_info(URL, download=True) # este metodo lo dio la ia, librerias de mierda no se entiende nada
-    insertarMusica(informacion)
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
+        error_code = ydl.download(URL) # la variable error_code es basicamente informativa para manejo de errores
+                                       # recordar que el codigo se ejecuta de derecha a izquierda, asi que primero se realiza la descarga en el equipo
+                                       # con la llamada del metodo .download inherente de los objetos YoutubeDL y luego se guarda su codigo 
+                                       # de resultado (0 si no hubo errores).
+        informacion = ydl.extract_info(URL, download=True) # este metodo se encuentra dentro de la libreria yt_dlp, linea 1673 de yt_dlp/YoutubeLD.py. 
+                                                |          # la forma del diccionario y su informacion depende del extractor del sitio usado, no de la libreria particularmente.
+                                                           # algunas claves comunes son: id, title, url, duration, formats.
+                                                           # download = true quiere decir que ya esta descargada la URL.
+                                                           # habria que controlar las maneras cada extractor en funcion de la pagina.
+                                                           # podemos tambien centrarnos en revisar solo el extractor de youtube
+    insertarMusica(informacion) # se actualiza la base de datos con la nueva cancion
 
 def insertarMusica(info): #aqui se actualiza la base de datos
     nombre = info["title"]
     duracion = info["duration"]
 
+    # la tabla canciones en la base de datos tiene los campos: 
+    # id_cancion (PK), titulo (NOT NULL), duracion_segundos(NOT NULL)
+    # ruta_archivo(NOT NULL), formato (NOT NULL), id_album, numero_pista
+    
     cur = conn.cursor()
-    cur.execute("""INSERT INTO cancion 
+    
+    #hay que mirar si se puede volver variable la direccion de descarga, con eso se vuelve innecesario el if/else
+    if os.name == 'posix'{
+        cur.execute("""INSERT INTO cancion 
                     (titulo, duracion_segundos, ruta_archivo, formato)
-                    VALUES (%s, %s, '~/Downloads', 'm4a')""", (nombre, duracion)) #pq mierda se concatena con tuplas
-    print("se guardo en la base de datos")
-    conn.commit()
+                    VALUES (%s, %s, '~/Downloads', 'mp3')""", (nombre, duracion)) # por ahora dejar el formato de descarga estatico
+        print("se guardo en la base de datos")
+        conn.commit()
+    }else{
+        cur.execute("""INSERT INTO cancion 
+                    (titulo, duracion_segundos, ruta_archivo, formato)
+                    VALUES (%s, %s, 'Descargas', 'mp3')""", (nombre, duracion)) 
+        print("se guardo en la base de datos")
+        conn.commit()
+    }
     cur.close()
 
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 print("Que quiere hacer: \n1. descargar musica \n2. salir")
 deseo = input()
 
