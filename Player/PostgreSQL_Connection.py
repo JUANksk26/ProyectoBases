@@ -3,6 +3,8 @@ import yt_dlp # libreria para bajar la musica con URL
 import os # libreria que permite sacar el nombre del SO usado
 from psycopg2 import OperationalError
 
+# HAY QUE HACER OTRA CLASE PARA ABSTRAER LAS FUNCIONES DE MANEJO DE LA BASE DE DATOS Y NO REDUNDAR EN LA ESCALADA DE METODOS
+
 # se crea una nueva instancia de conexion
 try:
     conn = psycopg2.connect( # creacion de la variable de CONNections
@@ -46,7 +48,9 @@ def descargarMusica(URL):
         }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
-        error_code = ydl.download(URL) # la variable error_code es basicamente informativa para manejo de errores
+        error_code = ydl.download(URL) # test: registrarRespuesta(ydl.download(URL))
+                                        
+                                       # la variable error_code es basicamente informativa para manejo de errores
                                        # recordar que el codigo se ejecuta de derecha a izquierda, asi que primero se realiza la descarga en el equipo
                                        # con la llamada del metodo .download inherente de los objetos YoutubeDL y luego se guarda su codigo 
                                        # de resultado (0 si no hubo errores).
@@ -84,6 +88,17 @@ def insertarMusica(info): #aqui se actualiza la base de datos
     }
     cur.close()
 
+ #metodo para guardar canciones que fallaron al descargar (como un control de fallas) y tenerlas documentadas
+
+# se supone que esta funcion se llamaria en la linea 49 de este codigo
+def registrarRespuesta(codigoError){ #para documentar errorsillos, se entiende su natural importancia
+    if codigoError == 0{ #quiere decir que no hubo ningun problema, no hay necesidad de documentarlo
+         return 0
+    }else{ #si hay problemas se documenta
+        # llamar a la funcion externa de insertar
+    }
+}
+
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 print("Que quiere hacer: \n1. descargar musica \n2. salir")
 deseo = input()
@@ -95,5 +110,5 @@ elif int(deseo) == 2:
     print("adios!")
 
 conn.close()
-    #metodo para guardar canciones que fallaron al descargar (como un control de fallas) y tenerlas documentadas
+   
     
