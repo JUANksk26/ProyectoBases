@@ -110,5 +110,24 @@ elif int(deseo) == 2:
     print("adios!")
 
 conn.close()
+
+#Eliminar Registros de cancion
+
+def eliminar_cancion(self, id_cancion):
+   
+    query = "DELETE FROM cancion WHERE id_cancion = %s;"
+    
+    try:
+        self.cursor.execute(query, (id_cancion,))
+        self.connection.commit()
+        
+        if self.cursor.rowcount > 0:
+            print(f"Canción con ID {id_cancion} eliminada exitosamente.")
+        else:
+            print(f"No se encontró ninguna canción con el ID {id_cancion}.")
+            
+    except Exception as e:
+        self.connection.rollback()
+        print(f"Error al intentar eliminar la canción: {e}")
    
     
