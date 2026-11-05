@@ -42,3 +42,12 @@ Terminara de integrar las funciones faltantes:
 - Letras sincronizadas a las canciones
 - Ecualizador integrado
 
+## Requirements
+ejecutar en la terminal antes de correr el codigo: 
+
+pip install yt_dlp
+
+pip intsall psycopg2 
+
+winget install FFmpeg
+
