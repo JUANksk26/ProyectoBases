@@ -1,5 +1,5 @@
 
-CREATE TABLE usuario (
+/*CREATE TABLE usuario (
     id_usuario BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
     correo VARCHAR(254) NOT NULL UNIQUE,
@@ -96,3 +96,21 @@ CREATE TABLE cancion_genero (
         REFERENCES genero(id_genero)
         ON DELETE CASCADE
 );
+
+CREATE TABLE historial_reproduccion (
+    id_historial BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario BIGINT NOT NULL,
+    id_cancion BIGINT NOT NULL,
+    fecha_reproduccion TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Si se elimina el usuario, se borra su historial
+    FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+        ON DELETE CASCADE,
+
+    -- Si se elimina la canción, se borra de los historiales
+    FOREIGN KEY (id_cancion)
+        REFERENCES cancion(id_cancion)
+        ON DELETE CASCADE
+);*/
+
