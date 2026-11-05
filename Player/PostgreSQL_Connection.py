@@ -42,8 +42,8 @@ def descargarMusica(URL):
                 "preferredcodec": "mp3",
             }],
             "paths": {
-                # poner direccion de windows. "home": "~/Downloads", cambiar la parte derecha
-                # poner direccion correspondiente a windows"temp": "/tmp/yt-dlp", cambiar la parte derecha
+                "home" : "C:\\Users\\ljuan\\Documents",
+                "temp" : "C:\\Users\\ljuan\\Documents\\Temps"
             },
         }
 
@@ -55,12 +55,12 @@ def descargarMusica(URL):
                                        # con la llamada del metodo .download inherente de los objetos YoutubeDL y luego se guarda su codigo 
                                        # de resultado (0 si no hubo errores).
         informacion = ydl.extract_info(URL, download=True) # este metodo se encuentra dentro de la libreria yt_dlp, linea 1673 de yt_dlp/YoutubeLD.py. 
-                                                |          # la forma del diccionario y su informacion depende del extractor del sitio usado, no de la libreria particularmente.
+                                                           # la forma del diccionario y su informacion depende del extractor del sitio usado, no de la libreria particularmente.
                                                            # algunas claves comunes son: id, title, url, duration, formats.
                                                            # download = true quiere decir que ya esta descargada la URL.
                                                            # habria que controlar las maneras cada extractor en funcion de la pagina.
                                                            # podemos tambien centrarnos en revisar solo el extractor de youtube
-    insertarMusica(informacion) # se actualiza la base de datos con la nueva cancion
+        insertarMusica(informacion) # se actualiza la base de datos con la nueva cancion
 
 def insertarMusica(info): #aqui se actualiza la base de datos
     nombre = info["title"]
@@ -73,42 +73,64 @@ def insertarMusica(info): #aqui se actualiza la base de datos
     cur = conn.cursor()
     
     #hay que mirar si se puede volver variable la direccion de descarga, con eso se vuelve innecesario el if/else
-    if os.name == 'posix'{
+    if os.name == 'posix':
         cur.execute("""INSERT INTO cancion 
                     (titulo, duracion_segundos, ruta_archivo, formato)
                     VALUES (%s, %s, '~/Downloads', 'mp3')""", (nombre, duracion)) # por ahora dejar el formato de descarga estatico
         print("se guardo en la base de datos")
         conn.commit()
-    }else{
+    else:
         cur.execute("""INSERT INTO cancion 
                     (titulo, duracion_segundos, ruta_archivo, formato)
                     VALUES (%s, %s, 'Descargas', 'mp3')""", (nombre, duracion)) 
         print("se guardo en la base de datos")
         conn.commit()
-    }
+        
     cur.close()
 
  #metodo para guardar canciones que fallaron al descargar (como un control de fallas) y tenerlas documentadas
 
 # se supone que esta funcion se llamaria en la linea 49 de este codigo
-def registrarRespuesta(codigoError){ #para documentar errorsillos, se entiende su natural importancia
-    if codigoError == 0{ #quiere decir que no hubo ningun problema, no hay necesidad de documentarlo
-         return 0
-    }else{ #si hay problemas se documenta
-        # llamar a la funcion externa de insertar
-    }
-}
+#def registrarRespuesta(codigoError): #para documentar errorsillos, se entiende su natural importancia
+ #   if codigoError == 0: #quiere decir que no hubo ningun problema, no hay necesidad de documentarlo
+   #      return 0
+  #  else: #si hay problemas se documenta
+    #     # llamar a la funcion externa de insertar
+def eliminar_cancion(id_cancion):
+    try:
+        cur = conn.cursor()
 
+        cur.execute("DELETE FROM cancion WHERE id_cancion = %s;", (id_cancion,))
+        
+       
+        if cur.rowcount > 0: 
+            print(f"Canción con ID {id_cancion} eliminada correctamente.")
+            conn.commit()
+        else:
+            print(f"No se encontró ninguna canción con el ID {id_cancion}.")
+            
+    except psycopg2.Error as e:
+        # Revertir transacción en caso de error
+        conn.rollback()
+        print(f"Error al eliminar la canción: {e}")
+        
+    finally:
+        # Cerrar el cursor para liberar memoria
+        if cur:
+            cur.close()
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-print("Que quiere hacer: \n1. descargar musica \n2. salir")
+print("Que quiere hacer: \n1. descargar musica \n2. salir \n3. eliminar cancion")
 deseo = input()
 
-if int(deseo) == 1:
-    url = input("URL de la cancion: ")
-    descargarMusica(url)
-elif int(deseo) == 2:
-    print("adios!")
+match int(deseo):
+    case 1:
+        url = input("URL de la cancion: ")
+        descargarMusica(url)
+    case 2:
+        id_cancion = input("Ingrese el ID de la canción a eliminar: ")
+        eliminar_cancion(id_cancion)
+    case 3:
+        print("Dejelá sonar")
+   
 
 conn.close()
-   
-    
