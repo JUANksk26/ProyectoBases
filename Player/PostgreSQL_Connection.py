@@ -76,7 +76,7 @@ def insertarMusica(info): #aqui se actualiza la base de datos
     if os.name == 'posix':
         cur.execute("""INSERT INTO cancion 
                     (titulo, duracion_segundos, ruta_archivo, formato)
-                    VALUES (%s, %s, '~/Downloads', 'mp3')""", (nombre, duracion)) # por ahora dejar el formato de descarga estatico
+                    VALUES (%s, %s, '~/Downloads/', 'mp3')""", (nombre, duracion)) # por ahora dejar el formato de descarga estatico
         print("se guardo en la base de datos")
         conn.commit()
     else:
@@ -96,41 +96,77 @@ def insertarMusica(info): #aqui se actualiza la base de datos
    #      return 0
   #  else: #si hay problemas se documenta
     #     # llamar a la funcion externa de insertar
+def listar_canciones():
+    cur = None
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT id_cancion, titulo FROM cancion")
+        return cur.fetchall()   
+    except psycopg2.Error as e:
+        print(f"No existen canciones: {e}")
+        return []
+    finally:
+        if cur:
+            cur.close()
+
 def eliminar_cancion(id_cancion):
+    cur = None
     try:
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM cancion WHERE id_cancion = %s;", (id_cancion,))
-        
-       
-        if cur.rowcount > 0: 
-            print(f"Canción con ID {id_cancion} eliminada correctamente.")
-            conn.commit()
-        else:
+        # 1. Obtener la ruta guardada
+        cur.execute("SELECT ruta_archivo FROM cancion WHERE id_cancion = %s;", (id_cancion,))
+        fila = cur.fetchone()
+
+        if fila is None:
             print(f"No se encontró ninguna canción con el ID {id_cancion}.")
-            
+            return
+
+        ruta = os.path.expanduser(fila[0])
+
+
+        # 3. Eliminar el archivo solo si existe y es un archivo
+        if os.path.isfile(ruta):
+            os.remove(ruta)
+
     except psycopg2.Error as e:
-        # Revertir transacción en caso de error
         conn.rollback()
         print(f"Error al eliminar la canción: {e}")
-        
+
     finally:
-        # Cerrar el cursor para liberar memoria
         if cur:
             cur.close()
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-print("Que quiere hacer: \n1. descargar musica \n2. salir \n3. eliminar cancion")
+
+
 deseo = input()
 
-match int(deseo):
-    case 1:
-        url = input("URL de la cancion: ")
-        descargarMusica(url)
-    case 2:
-        id_cancion = input("Ingrese el ID de la canción a eliminar: ")
-        eliminar_cancion(id_cancion)
-    case 3:
-        print("Dejelá sonar")
-   
+while True:
+    
+    print("\n--- MENÚ DE OPCIONES ---")
+    print("1. Descargar canción")
+    print("2. Eliminar canción")
+    print("3. Salir")
+    
+    deseo = input("Seleccione una opción: ")
+
+
+    match int(deseo):
+        case 1:
+            url = input("URL de la cancion: ")
+            descargarMusica(url)
+            
+            
+        case 2:
+            print(listar_canciones())
+            id_cancion = input("Ingrese el ID de la canción a eliminar: ")
+            eliminar_cancion(id_cancion)
+
+        case 3:
+            print("Dejelá sonar")
+            break  
+            
+        case _:
+            print("Opción no válida. Intente de nuevo.")
 
 conn.close()

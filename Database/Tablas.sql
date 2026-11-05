@@ -113,4 +113,4 @@ CREATE TABLE historial_reproduccion (
         REFERENCES cancion(id_cancion)
         ON DELETE CASCADE
 );*/
-
+SELECT id_cancion,titulo FROM cancion
