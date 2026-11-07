@@ -97,6 +97,12 @@ CREATE TABLE cancion_genero (
         ON DELETE CASCADE
 );
 
+CREATE TABLE errores (
+    id_error BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    titulo varchar (100) NOT NULL UNIQUE,
+    ruta_archivo varchar (500) NOT NULL UNIQUE
+);
+
 CREATE TABLE historial_reproduccion (
     id_historial BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_usuario BIGINT NOT NULL,
