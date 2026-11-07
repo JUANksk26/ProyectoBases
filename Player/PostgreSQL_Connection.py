@@ -1,14 +1,18 @@
 import psycopg2 # libreria para conectarse y usar PostgreSQL
 import yt_dlp # libreria para bajar la musica con URL
 import os # libreria que permite sacar el nombre del SO usado
+from pathlib import Path # libreria para manejar archivos y directorios del sistema con python
 from psycopg2 import OperationalError
+
+# pagina tutorial de pathlib
+# https://escueladeprogramacion.net/blog/como-trabajar-con-archivos-en-python-leer-escribir-y-modificar-ficheros
 
 # HAY QUE HACER OTRA CLASE PARA ABSTRAER LAS FUNCIONES DE MANEJO DE LA BASE DE DATOS Y NO REDUNDAR EN LA ESCALADA DE METODOS
 
 # se crea una nueva instancia de conexion
 try:
     conn = psycopg2.connect( # creacion de la variable de CONNections
-        database = "Reproductor", # Nombre provisional para base de datos.
+        database = "Reproductor", # base de datos externa en Neon
         user = "neondb_owner",
         host = "ep-withered-pine-bej5jofc-pooler.c-9.us-east-2.aws.neon.tech",
         password = 'npg_h0LUcYuEMn1K',
@@ -20,52 +24,30 @@ except OperationalError as e:
 
 # funcion para bajar musica de la web a partir de una url dada por el usuario
 def descargarMusica(URL):
+    ruta_descarga = str(Path.home() / "dejelaSonar")
+    Path(ruta_descarga).mkdir(parents=True, exist_ok=True)
 
-    # esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
-    if os.name == 'posix': # los sistemas Unix (Linux/MacOS) devuelven esta cadena como nombre representativo
-        ydl_opts = {
-            "format": "mp3/bestaudio/best", # se descargan archivos mp3 de la mejor calidad posible. Prioriza compatibilidad sobre calidad
-            "postprocessors": [{            # tecnicamente esto el usuario podria modificarlo a voluntad en versiones futuras del proyecto
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-            }],
-            "paths": {
-                "home": "~/Downloads", # por ahora es una ruta fija
-                "temp": "/tmp/yt-dlp",
-            },
-        }
-    else: # confuracion para sistemas windows
-        ydl_opts = {
-            "format": "mp3/bestaudio/best",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-            }],
-            "paths": {
-                "home" : "C:\\Users\\ljuan\\Documents",
-                "temp" : "C:\\Users\\ljuan\\Documents\\Temps"
-            },
-        }
+    ydl_opts = { # esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
+        "format": "mp3/bestaudio/best",
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+        }],
+        "paths": {
+            "home" : ruta_descarga,
+            "temp" : ruta_descarga
+        },
+    }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
-        error_code = ydl.download(URL) # test: registrarRespuesta(ydl.download(URL))
+        registrarRespuesta(ydl.download(URL), ruta_descarga, ydl.extract_info(URL, download=False)["title"])
+        registrarMusica(ydl.extract_info(URL, download=False), ruta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
-                                       # la variable error_code es basicamente informativa para manejo de errores
-                                       # recordar que el codigo se ejecuta de derecha a izquierda, asi que primero se realiza la descarga en el equipo
-                                       # con la llamada del metodo .download inherente de los objetos YoutubeDL y luego se guarda su codigo
-                                       # de resultado (0 si no hubo errores).
-        informacion = ydl.extract_info(URL, download=True) # este metodo se encuentra dentro de la libreria yt_dlp, linea 1673 de yt_dlp/YoutubeLD.py.
-                                                           # la forma del diccionario y su informacion depende del extractor del sitio usado, no de la libreria particularmente.
-                                                           # algunas claves comunes son: id, title, url, duration, formats.
-                                                           # download = true quiere decir que ya esta descargada la URL.
-                                                           # habria que controlar las maneras cada extractor en funcion de la pagina.
-                                                           # podemos tambien centrarnos en revisar solo el extractor de youtube
-        insertarMusica(informacion) # se actualiza la base de datos con la nueva cancion
-
-def insertarMusica(info): #aqui se actualiza la base de datos
+# Actualiza la base de datos con la nueva cancion
+def registrarMusica(info, ubicacion):
     nombre = info["title"]
     duracion = info["duration"]
-
+    ruta = ubicacion + nombre
     # la tabla canciones en la base de datos tiene los campos:
     # id_cancion (PK), titulo (NOT NULL), duracion_segundos(NOT NULL)
     # ruta_archivo(NOT NULL), formato (NOT NULL), id_album, numero_pista
@@ -73,29 +55,28 @@ def insertarMusica(info): #aqui se actualiza la base de datos
     cur = conn.cursor()
 
     #hay que mirar si se puede volver variable la direccion de descarga, con eso se vuelve innecesario el if/else
-    if os.name == 'posix':
-        cur.execute("""INSERT INTO cancion
+    cur.execute("""INSERT INTO cancion
                     (titulo, duracion_segundos, ruta_archivo, formato)
-                    VALUES (%s, %s, '~/Downloads/', 'mp3')""", (nombre, duracion)) # por ahora dejar el formato de descarga estatico
-        print("se guardo en la base de datos")
-        conn.commit()
-    else:
-        cur.execute("""INSERT INTO cancion
-                    (titulo, duracion_segundos, ruta_archivo, formato)
-                    VALUES (%s, %s, 'Descargas', 'mp3')""", (nombre, duracion))
-        print("se guardo en la base de datos")
-        conn.commit()
+                    VALUES (%s, %s, %s, 'mp3')""", (nombre, duracion, ruta)) # por ahora dejar el formato de descarga estatico
+    print("se guardo en la base de datos")
+    conn.commit()
 
     cur.close()
 
- #metodo para guardar canciones que fallaron al descargar (como un control de fallas) y tenerlas documentadas
+# metodo para guardar canciones que fallaron al descargar (como un control de fallas) y tenerlas documentadas
+def registrarRespuesta(codigoError, ruta, titulo):
+    if codigoError == 0: #quiere decir que no hubo ningun problema, no hay necesidad de documentarlo
+        return 0
+    else: #si hay problemas se documenta
+        cur = conn.cursor()
+        cur.execute("""INSERT INTO errores
+                        (codigo_error, titulo, ruta_archivo)
+                        VALUES (%s, %s, %s)""", (codigoError, titulo, ruta_archivo)) # por ahora dejar el formato de descarga estatico
+        print("se registro el error en la base de datos")
+        conn.commit()
 
-# se supone que esta funcion se llamaria en la linea 49 de este codigo
-#def registrarRespuesta(codigoError): #para documentar errorsillos, se entiende su natural importancia
- #   if codigoError == 0: #quiere decir que no hubo ningun problema, no hay necesidad de documentarlo
-   #      return 0
-  #  else: #si hay problemas se documenta
-    #     # llamar a la funcion externa de insertar
+        cur.close()
+
 def listar_canciones():
     cur = None
     try:
@@ -163,7 +144,7 @@ while True:
             eliminar_cancion(id_cancion)
 
         case 3:
-            print("Dejelá sonar")
+            print("Déjela sonar")
             break
 
         case _:
