@@ -37,8 +37,8 @@ def descargarMusicaDefault(id_cancion, y):
 # funcion para bajar musica de la web a partir de una url dada por el usuario
 def descargarMusica(URL,y):
 
-    fichero_descarga = Path.home() / "dejelaSonar" # direccion del fichero donde se descargaran las canciones
-    Path(str(fichero_descarga)).mkdir(parents=True, exist_ok=True) # crea dicho fichero
+    fichero_descarga = Path(Path.home() / "dejelaSonar") # direccion del fichero donde se descargaran las canciones
+    Path(fichero_descarga.resolve()).mkdir(parents=True, exist_ok=True) # crea dicho fichero
 
     ydl_opts = { # esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
         "format": "mp3/bestaudio/best",
@@ -47,28 +47,28 @@ def descargarMusica(URL,y):
             "preferredcodec": "mp3",
         }],
         "paths": {
-            "home" : str(fichero_descarga),
-            "temp" : str(fichero_descarga)
+            "home" : str(fichero_descarga.resolve()),
+            "temp" : str(fichero_descarga.resolve())
         },
     }
-
 
     if y == True:
         return
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
 
         informacion_descarga = ydl.extract_info(URL, download=False)
+        # ruta_absoluta_descarga =
+        ruta_absoluta_descarga = fichero_descarga.joinpath(informacion_descarga["title"])
 
-        ruta_absoluta_descarga = Path("dejelaSonar/%s", informacion_descarga["title"])
+        #registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga.name, informacion_descarga["title"])
 
-        registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga.name, informacion_descarga["title"])#habria que registar el codigo de error tambien
-
-        registrarMusica(informacion_descarga, ruta_absoluta_descarga.name, URL)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
+        registrarMusica(informacion_descarga, ruta_absoluta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
 # Actualiza la base de datos con la nueva cancion
-def registrarMusica(info, ubicacion_literal, url):
+def registrarMusica(info, ubicacion_literal):
     nombre = info["title"]
     duracion = info["duration"]
+    url = info["url"]
     formato = "mp3"
     # la tabla canciones en la base de datos tiene los campos:
     # id_cancion (PK), titulo (NOT NULL), duracion_segundos(NOT NULL)
@@ -78,7 +78,7 @@ def registrarMusica(info, ubicacion_literal, url):
 
     cur.execute("""INSERT INTO cancion
                         (titulo, duracion_segundos, ruta_archivo, formato, url)
-                        VALUES (%s, %s, %s, %s, %s)""", (nombre, duracion, ubicacion_literal, formato, url))
+                        VALUES (%s, %s, %s, %s, %s)""", (nombre, duracion, str(ubicacion_literal), formato, url))
     print("Se guardó en la base de datos.")
     conn.commit()
     # habria que agregar try, except y finally para cerrar el cursor y la conexion, pero por ahora lo dejo asi para que se vea que funciona
