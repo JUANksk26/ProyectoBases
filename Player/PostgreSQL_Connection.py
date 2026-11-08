@@ -37,8 +37,8 @@ def descargarMusicaDefault(id_cancion, y):
 # funcion para bajar musica de la web a partir de una url dada por el usuario
 def descargarMusica(URL,y):
 
-    fichero_descarga = str(Path.home() / "dejelaSonar") # direccion del fichero donde se descargaran las canciones
-    Path(fichero_descarga).mkdir(parents=True, exist_ok=True) # crea dicho fichero
+    fichero_descarga = Path.home() / "dejelaSonar" # direccion del fichero donde se descargaran las canciones
+    Path(str(fichero_descarga)).mkdir(parents=True, exist_ok=True) # crea dicho fichero
 
     ydl_opts = { # esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
         "format": "mp3/bestaudio/best",
@@ -57,6 +57,7 @@ def descargarMusica(URL,y):
         return
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
         informacion_descarga = ydl.extract_info(URL, download=False)
+
         ruta_absoluta_descarga = Path(fichero_descarga / informacion_descarga["title"])
         registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga, informacion_descarga["title"])#habria que registar el codigo de error tambien
 
