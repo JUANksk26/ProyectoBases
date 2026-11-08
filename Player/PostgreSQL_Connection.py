@@ -57,10 +57,10 @@ def descargarMusica(URL,y):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
 
         informacion_descarga = ydl.extract_info(URL, download=False)
-        # ruta_absoluta_descarga =
-        ruta_absoluta_descarga = fichero_descarga.joinpath(informacion_descarga["title"])
 
-        #registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga.name, informacion_descarga["title"])
+        ruta_absoluta_descarga = fichero_descarga.joinpath(informacion_descarga["title"]).resolve()
+
+        registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga.name, informacion_descarga["title"])
 
         registrarMusica(informacion_descarga, ruta_absoluta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
