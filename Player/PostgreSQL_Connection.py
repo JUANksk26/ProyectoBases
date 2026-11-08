@@ -69,7 +69,7 @@ def descargarMusica(URL,y):
 def registrarMusica(info, ubicacion_literal, url):
     nombre = info["title"]
     duracion = info["duration"]
-
+    formato = "mp3"
     # la tabla canciones en la base de datos tiene los campos:
     # id_cancion (PK), titulo (NOT NULL), duracion_segundos(NOT NULL)
     # ruta_archivo(NOT NULL), formato (NOT NULL), id_album, numero_pista
@@ -78,7 +78,7 @@ def registrarMusica(info, ubicacion_literal, url):
 
     cur.execute("""INSERT INTO cancion
                         (titulo, duracion_segundos, ruta_archivo, formato, url)
-                        VALUES (%s, %s, %s, "mp3", %s)""", (nombre, duracion, ubicacion_literal, url))
+                        VALUES (%s, %s, %s, %s, %s)""", (nombre, duracion, ubicacion_literal, formato, url))
     print("Se guardó en la base de datos.")
     conn.commit()
     # habria que agregar try, except y finally para cerrar el cursor y la conexion, pero por ahora lo dejo asi para que se vea que funciona
