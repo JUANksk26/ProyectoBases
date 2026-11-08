@@ -12,7 +12,7 @@ class Song:
         self.title = os.path.splitext(filename)[0]
         self.duration = self.get_duration()
     def get_duration(self): 
-       audio = MP3(os.path.join("C:\\Users\\ljuan\\Documents\\Canciones", self.filename))
+       audio = MP3(os.path.join('C:\\Users\\ljuan\\dejelaSonar', self.filename))
        return audio.info.length
 
     
@@ -22,10 +22,10 @@ async def main(page : ft.Page):
     page.bgcolor = "#100D16"
     titulo = ft.Text("LetItSound", color ="#EAE4F4", size = 40)
     pygame.mixer.init()
-    playlist = [Song(f) for f in os.listdir("C:\\Users\\ljuan\\Documents\\Canciones") if f.endswith(".mp3")]
+    playlist = [Song(f) for f in os.listdir('C:\\Users\\ljuan\\dejelaSonar') if f.endswith(".mp3")]
 
     def load_song():
-        pygame.mixer.music.load(os.path.join("C:\\Users\\ljuan\\Documents\\Canciones", playlist[current_song_index].filename))
+        pygame.mixer.music.load(os.path.join('C:\\Users\\ljuan\\dejelaSonar', playlist[current_song_index].filename))
     
     def pause(e):
         if pygame.mixer.music.get_busy():

@@ -1,3 +1,5 @@
+from multiprocessing.util import info
+
 import psycopg2 # libreria para conectarse y usar PostgreSQL
 import yt_dlp # libreria para bajar la musica con URL
 import os # libreria que permite sacar el nombre del SO usado
@@ -22,7 +24,7 @@ try:
 except OperationalError as e:
     print(f"No se pudo conectar a la base de datos, error: {e}")
 
-def descargarMusicaDefault(id_cancion, y):
+def descargarMusicaDefault(id_cancion, registrada):
     cur = conn.cursor()
     cur.execute("SELECT url FROM cancion WHERE id_cancion = %s;", (id_cancion,))
     fila = cur.fetchone()
@@ -32,10 +34,12 @@ def descargarMusicaDefault(id_cancion, y):
         return
 
     url = fila[0]
-    descargarMusica(url, y)
+    descargarMusica(str(url), registrada)
+    cur.execute("UPDATE cancion SET activo = TRUE WHERE id_cancion = %s;", (id_cancion,))
+    cur.close()
 
 # funcion para bajar musica de la web a partir de una url dada por el usuario
-def descargarMusica(URL,y):
+def descargarMusica(URL,resgistrada):
 
     fichero_descarga = Path(Path.home() / "dejelaSonar") # direccion del fichero donde se descargaran las canciones
     Path(fichero_descarga.resolve()).mkdir(parents=True, exist_ok=True) # crea dicho fichero
@@ -46,31 +50,37 @@ def descargarMusica(URL,y):
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
         }],
-        "paths": {
+        "outtmpl": f"{str(fichero_descarga.resolve())}/%(title)s [%(id)s].%(ext)s", # outtmpl es la manera en la que se descargan los archivos, %(title)s es el título del video, %(id)s es el ID del video LA QUE TANTO BUSCAMOS y %(ext)s es la extensión del archivo
+        "paths": {                                                                  # aparece en la documentacion de yt-dlp, exactamente en https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/options.py
             "home" : str(fichero_descarga.resolve()),
             "temp" : str(fichero_descarga.resolve())
         },
     }
 
-    if y == True:
-        return
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
 
         informacion_descarga = ydl.extract_info(URL, download=False)
+        titulo = informacion_descarga.get("title")
+        id_can = informacion_descarga.get("id")
 
-        ruta_absoluta_descarga = fichero_descarga.joinpath(informacion_descarga["title"]).resolve()
-        ruta_real = str(ruta_absoluta_descarga) + " [" + informacion_descarga["id"] + "]" + ".mp3"
+        ruta_absoluta_descarga = fichero_descarga.joinpath(titulo).resolve()
+        ruta_real = str(ruta_absoluta_descarga) + f" [{id_can}].mp3" 
+        codigo_error = ydl.download([URL])
 
-        registrarRespuesta(ydl.download(URL), ruta_real, informacion_descarga["title"])
-
-        registrarMusica(informacion_descarga, ruta_real)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
+    if resgistrada == True:
+            registrarRespuesta(codigo_error, ruta_real, titulo)
+    else:
+            registrarRespuesta(codigo_error, ruta_real, titulo)
+            registrarMusica(informacion_descarga, ruta_real)
 
 # Actualiza la base de datos con la nueva cancion
 def registrarMusica(info, ubicacion_literal):
     nombre = info["title"]
     duracion = info["duration"]
-    url = info["url"]
-    formato = "mp3"
+    url = info.get("webpage_url", info.get("original_url")) #en el repositorio encontre webpage_url (string): A URL to the video webpage which, if given to yt-dlp, should yield the same result again
+    formato = "mp3" #tambien el de 'original_url'
+
     # la tabla canciones en la base de datos tiene los campos:
     # id_cancion (PK), titulo (NOT NULL), duracion_segundos(NOT NULL)
     # ruta_archivo(NOT NULL), formato (NOT NULL), id_album, numero_pista
@@ -140,9 +150,9 @@ def eliminar_cancion(id_cancion):
         if os.path.isfile(ruta):
             os.remove(ruta)
             print("Archivo físico eliminado correctamente.")
-            cur.execute("UPDATE cancion SET activo = FALSE WHERE id_cancion = %s;", (id_cancion,))
-            conn.commit()
-            print("Registro desactivado en la base de datos.")
+            #cur.execute("UPDATE cancion SET activo = FALSE WHERE id_cancion = %s;", (id_cancion,))
+            #conn.commit()
+            #print("Registro desactivado en la base de datos.")
         else:
             print("No se encontró el archivo físico en la ruta especificada.")
 
@@ -185,7 +195,7 @@ while True:
             if canciones:
                 print("\n--- Lista de canciones descargables ---")
                 for cancion in canciones:
-                    print(f"ID: {cancion[0]}, Título: {cancion[1]}, URL: {cancion[2]}")
+                    print(f"ID: {cancion[0]}, Título: {cancion[1]}")
                 print("\nIngrese el ID de la canción que desea descargar o '0' para regresar al menú principal.")
                 id_cancion = input("ID de la canción: ")
                 cancion = buscar_cancion(id_cancion)
