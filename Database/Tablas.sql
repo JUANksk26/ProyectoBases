@@ -130,3 +130,43 @@ ADD COLUMN url TEXT NOT NULL DEFAULT 'sin_url';
 
 ALTER TABLE cancion 
 ALTER COLUMN url DROP DEFAULT;*/
+/*
+--TABLA Y TRIGGERS DE AUDITORÍA (HISTORIAL DE BORRADOS Y DESACTIVACIONES)
+CREATE TABLE IF NOT EXISTS historial_eliminados (
+    id_historial SERIAL PRIMARY KEY,
+    id_cancion INT,
+    titulo_cancion VARCHAR(255),
+    fecha_eliminacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--Trigger para guardar registro cuando se desactiva (Ocultar)
+CREATE OR REPLACE FUNCTION auditar_eliminacion_cancion()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.activo = FALSE AND OLD.activo = TRUE THEN
+        INSERT INTO historial_eliminados (id_cancion, titulo_cancion)
+        VALUES (OLD.id_cancion, OLD.titulo);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_auditoria_eliminacion
+AFTER UPDATE ON cancion
+FOR EACH ROW
+EXECUTE FUNCTION auditar_eliminacion_cancion();
+
+CREATE OR REPLACE FUNCTION evitar_canciones_duplicadas()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM cancion WHERE url = NEW.url AND activo = TRUE) THEN
+        RAISE EXCEPTION 'Error: La URL de esta canción ya está registrada y activa.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_evitar_duplicados
+BEFORE INSERT ON cancion
+FOR EACH ROW
+EXECUTE FUNCTION evitar_canciones_duplicadas();*/
