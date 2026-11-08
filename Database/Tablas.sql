@@ -120,3 +120,13 @@ CREATE TABLE historial_reproduccion (
         ON DELETE CASCADE
 );*/
 SELECT id_cancion,titulo FROM cancion
+--ALTER TABLE cancion 
+--ADD COLUMN activo BOOLEAN NOT NULL DEFAULT TRUE;
+
+/*hice esto para agregar la columna URL a la tabla cancion*/
+/*ALTER TABLE cancion 
+ADD COLUMN url TEXT NOT NULL DEFAULT 'sin_url';
+
+
+ALTER TABLE cancion 
+ALTER COLUMN url DROP DEFAULT;*/
