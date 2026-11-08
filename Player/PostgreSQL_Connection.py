@@ -36,9 +36,9 @@ def descargarMusicaDefault(id_cancion, y):
 
 # funcion para bajar musica de la web a partir de una url dada por el usuario
 def descargarMusica(URL,y):
-    
-    ruta_descarga = str(Path.home() / "dejelaSonar")
-    Path(ruta_descarga).mkdir(parents=True, exist_ok=True)
+
+    fichero_descarga = str(Path.home() / "dejelaSonar") # direccion del fichero donde se descargaran las canciones
+    Path(fichero_descarga).mkdir(parents=True, exist_ok=True) # crea dicho fichero
 
     ydl_opts = { # esto se saco de https://pypi.org/project/yt-dlp/#user-content-embedding-examples
         "format": "mp3/bestaudio/best",
@@ -47,48 +47,50 @@ def descargarMusica(URL,y):
             "preferredcodec": "mp3",
         }],
         "paths": {
-            "home" : ruta_descarga,
-            "temp" : ruta_descarga
+            "home" : fichero_descarga,
+            "temp" : fichero_descarga
         },
     }
+
+    informacion_descarga = ydl.extract_info(URL, download=False)
+    ruta_absoluta_descarga = Path(fichero_descarga / informacion_descarga["title"])
     if y == True:
         return
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
-        registrarRespuesta(ydl.download(URL), ruta_descarga, ydl.extract_info(URL, download=False)["title"])#habria que registar el codigo de error tambien
-        registrarMusica(ydl.extract_info(URL, download=False), ruta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
+        registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga, informacion_descarga["title"])#habria que registar el codigo de error tambien
+
+        registrarMusica(informacion_descarga, ruta_absoluta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
 # Actualiza la base de datos con la nueva cancion
-def registrarMusica(info, ubicacion):
+def registrarMusica(info, ubicacion_literal):
     nombre = info["title"]
     duracion = info["duration"]
-    ruta = ubicacion + '\\' + nombre + ".mp3"  # le falto el mp3, lo agrego yotas
+
     # la tabla canciones en la base de datos tiene los campos:
     # id_cancion (PK), titulo (NOT NULL), duracion_segundos(NOT NULL)
     # ruta_archivo(NOT NULL), formato (NOT NULL), id_album, numero_pista
 
     cur = conn.cursor()
 
-    #hay que mirar si se puede volver variable la direccion de descarga, con eso se vuelve innecesario el if/else
     cur.execute("""INSERT INTO cancion
                         (titulo, duracion_segundos, ruta_archivo, formato, url)
-                        VALUES (%s, %s, %s, 'mp3', %s)""", (nombre, duracion, ruta, url)) 
+                        VALUES (%s, %s, %s, 'mp3', %s)""", (nombre, duracion, ubicacion_literal, url))
     print("Se guardó en la base de datos.")
     conn.commit()
-#habria que agregar try, except y finally para cerrar el cursor y la conexion, pero por ahora lo dejo asi para que se vea que funciona
+    # habria que agregar try, except y finally para cerrar el cursor y la conexion, pero por ahora lo dejo asi para que se vea que funciona
     cur.close()
 
 # metodo para guardar canciones que fallaron al descargar (como un control de fallas) y tenerlas documentadas
 def registrarRespuesta(codigoError, ruta, titulo):
-    if codigoError == 0: #quiere decir que no hubo ningun problema, no hay necesidad de documentarlo
+    if codigoError == 0:
         return 0
-    else: #si hay problemas se documenta
+    else:
         cur = conn.cursor()
         cur.execute("""INSERT INTO errores
                         (codigo_error, titulo, ruta_archivo)
-                        VALUES (%s, %s, %s)""", (codigoError, titulo, ruta)) # por ahora dejar el formato de descarga estatico
+                        VALUES (%s, %s, %s)""", (codigoError, titulo, ruta))
         print("se registro el error en la base de datos")
         conn.commit()
-#lo mismo del anterior
         cur.close()
 
 def buscar_cancion(id_cancion):
@@ -103,7 +105,7 @@ def buscar_cancion(id_cancion):
     finally:
         if cur:
             cur.close()
-    
+
 def listar_canciones():
     cur = None
     try:
@@ -129,18 +131,18 @@ def eliminar_cancion(id_cancion):
             return
 
         ruta = os.path.expanduser(fila[0])
-        
+
         if os.path.isfile(ruta):
             os.remove(ruta)
             print("Archivo físico eliminado correctamente.")
             cur.execute("UPDATE cancion SET activo = FALSE WHERE id_cancion = %s;", (id_cancion,))
-            conn.commit() 
+            conn.commit()
             print("Registro desactivado en la base de datos.")
         else:
             print("No se encontró el archivo físico en la ruta especificada.")
 
     except psycopg2.Error as e:
-        conn.rollback() 
+        conn.rollback()
         print(f"Error en la base de datos: {e}")
     finally:
         if cur:
@@ -168,7 +170,7 @@ while True:
 
 
         case 2:
-            
+
             print(listar_canciones())
             id_cancion = input("Ingrese el ID de la canción a eliminar: ")
             eliminar_cancion(id_cancion)
@@ -189,7 +191,7 @@ while True:
                 else:
                     print("Canción no encontrada.")
             else:
-                print("No hay canciones disponibles para descargar.")     
+                print("No hay canciones disponibles para descargar.")
 
         case 4:
             print("Déjela sonar")
