@@ -1,0 +1,186 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- Paquetes requeridos para la compilación ---
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{fontspec}
+\usepackage[spanish, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{spanish}
+\babelfont{rm}{Noto Sans}
+\usepackage{enumitem}
+\setlist[itemize]{label=-}
+
+% Paquetes adicionales sugeridos para este tipo de documento
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+
+% Configuración de colores para los bloques de código (SQL/PLpgSQL)
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{sqlstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=SQL
+}
+\lstset{style=sqlstyle}
+
+\title{\textbf{Proyecto de Base de Datos}}
+\author{Tu Nombre Aquí}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------
+\section{Introducción y Reglas de Negocio}
+% ---------------------------------------------------------
+\textit{Descripción del caso práctico y sus restricciones.}
+
+[Escribe aquí la descripción detallada de tu caso de estudio, el contexto del problema a resolver y enumera claramente las reglas de negocio que restringen y definen el comportamiento de la base de datos.]
+
+% ---------------------------------------------------------
+\section{Modelo Relacional}
+% ---------------------------------------------------------
+\textit{Diagrama físico legible con definición clara de tipos de datos, PK y FK.}
+
+[En Overleaf, usa el comando \textbackslash includegraphics para insertar tu diagrama. A continuación se muestra un marcador de posición.]
+
+\vspace{1cm}
+\begin{center}
+    \framebox{\parbox{0.8\textwidth}{\centering \vspace{3cm} \textbf{ESPACIO PARA EL DIAGRAMA FÍSICO} \\ Reemplaza esto con tu imagen generada en herramientas como pgAdmin, DataGrip, o ERDPlus. \vspace{3cm}}}
+\end{center}
+\vspace{1cm}
+
+A continuación, puedes describir brevemente las tablas principales si lo consideras necesario.
+
+% ---------------------------------------------------------
+\section{Justificación de Normalización}
+% ---------------------------------------------------------
+\textit{Explicación técnica detallada de cómo se alcanzó la 1FN, 2FN y 3FN.}
+
+\subsection{Primera Forma Normal (1FN)}
+[Explica aquí cómo garantizaste la atomicidad de los atributos, la existencia de una clave primaria y que no haya grupos repetitivos.]
+
+\subsection{Segunda Forma Normal (2FN)}
+[Explica aquí cómo eliminaste las dependencias parciales, asegurando que todos los atributos no clave dependan de la clave primaria completa.]
+
+\subsection{Tercera Forma Normal (3FN)}
+[Explica aquí cómo eliminaste las dependencias transitivas (atributos que dependen de otros atributos no clave).]
+
+% ---------------------------------------------------------
+\section{Estructura y Carga (DDL/DML)}
+% ---------------------------------------------------------
+\textit{Bloques de código clave utilizados para crear las tablas y poblar la base de datos (mínimo 30-40 registros por tabla transaccional).}
+
+\subsection{Creación de Tablas (DDL)}
+[Ejemplo de cómo insertar tu código SQL:]
+
+\begin{lstlisting}[caption=Ejemplo de creación de tabla]
+CREATE TABLE ejemplo (
+    id_ejemplo INT PRIMARY KEY,
+    descripcion VARCHAR(100) NOT NULL
+);
+\end{lstlisting}
+
+\subsection{Población de Datos (DML)}
+[Inserta aquí los scripts INSERT o los bloques principales que evidencien la carga de los 30-40 registros. Si es muy extenso, incluye solo una parte representativa y menciona que el script completo se adjunta por separado.]
+
+\begin{lstlisting}[caption=Ejemplo de inserción de datos]
+INSERT INTO ejemplo (id_ejemplo, descripcion) VALUES
+(1, 'Registro 1'),
+(2, 'Registro 2');
+-- ... hasta 40 registros ...
+\end{lstlisting}
+
+% ---------------------------------------------------------
+\section{Consultas de Negocio}
+% ---------------------------------------------------------
+\textit{El código de las 10 consultas complejas, especificando la pregunta que resuelve cada una y adjuntando una captura de pantalla del resultado.}
+
+\subsection{Consulta 1: [Pregunta de negocio a resolver]}
+\textbf{Pregunta:} [Escribe aquí exactamente qué pregunta responde la consulta. Ej: ¿Cuáles son los 5 clientes con mayor volumen de compras en el último trimestre?]
+
+\begin{lstlisting}
+-- Código SQL de la Consulta 1
+SELECT * FROM tabla WHERE condicion = 'ejemplo';
+\end{lstlisting}
+
+\begin{center}
+    \framebox{\parbox{0.7\textwidth}{\centering \vspace{1.5cm} Captura de pantalla del resultado 1 \vspace{1.5cm}}}
+\end{center}
+
+\subsection{Consulta 2: [Pregunta de negocio a resolver]}
+\textbf{Pregunta:} [...]
+
+\begin{lstlisting}
+-- Código SQL de la Consulta 2
+\end{lstlisting}
+\begin{center}
+    \framebox{\parbox{0.7\textwidth}{\centering \vspace{1.5cm} Captura de pantalla del resultado 2 \vspace{1.5cm}}}
+\end{center}
+
+% Copia y pega el bloque anterior para las consultas de la 3 a la 10.
+\vspace{1cm}
+\textit{[... Continúa con las consultas 3 hasta la 10 de la misma manera ...]}
+
+
+% ---------------------------------------------------------
+\section{Programación Avanzada (PL/pgSQL)}
+% ---------------------------------------------------------
+\textit{Código y explicación detallada del funcionamiento de su Función/Procedimiento, del Trigger implementado y la justificación del Índice de optimización.}
+
+\subsection{Función o Procedimiento Almacenado}
+\textbf{Objetivo:} [Explica qué hace la función y por qué es útil para el negocio]
+
+\begin{lstlisting}
+-- Código de tu función/procedimiento en PL/pgSQL
+CREATE OR REPLACE FUNCTION mi_funcion()
+RETURNS void AS $$
+BEGIN
+    -- Lógica aquí
+END;
+$$ LANGUAGE plpgsql;
+\end{lstlisting}
+
+\textbf{Explicación del funcionamiento:} [Detalla paso a paso cómo opera la lógica interna].
+
+\subsection{Trigger Implementado}
+\textbf{Objetivo:} [Explica qué evento dispara el trigger y qué regla de negocio o auditoría asegura]
+
+\begin{lstlisting}
+-- Código de tu función de trigger y el trigger
+\end{lstlisting}
+
+\textbf{Explicación del funcionamiento:} [Detalla sobre qué tabla actúa, si es BEFORE/AFTER, e INSERT/UPDATE/DELETE, y qué acciones realiza].
+
+\subsection{Índice de Optimización}
+\textbf{Objetivo:} [Explica sobre qué tabla y columnas se creó el índice]
+
+\begin{lstlisting}
+-- Código de creación del índice
+CREATE INDEX idx_nombre_indice ON tabla(columna);
+\end{lstlisting}
+
+\textbf{Justificación:} [Explica de manera técnica por qué este índice mejora el rendimiento. Ej: "Se creó un índice B-Tree sobre la columna X porque se utiliza frecuentemente en las cláusulas WHERE y JOIN de las consultas 3, 5 y 8, reduciendo el costo de escaneo secuencial."].
+
+\end{document}
