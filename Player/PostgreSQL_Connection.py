@@ -112,7 +112,7 @@ def buscar_cancion(id_cancion):
     cur = None
     try:
         cur = conn.cursor()
-        cur.execute("SELECT id_cancion, titulo, URL FROM cancion WHERE id_cancion = %s AND activo = TRUE;", (id_cancion,))
+        cur.execute("SELECT id_cancion, titulo FROM cancion WHERE id_cancion = %s AND activo = TRUE;", (id_cancion,))
         return cur.fetchone()
     except psycopg2.Error as e:
         print(f"No se pudo buscar la canción: {e}")
@@ -150,9 +150,6 @@ def eliminar_cancion(id_cancion):
         if os.path.isfile(ruta):
             os.remove(ruta)
             print("Archivo físico eliminado correctamente.")
-            #cur.execute("UPDATE cancion SET activo = FALSE WHERE id_cancion = %s;", (id_cancion,))
-            #conn.commit()
-            #print("Registro desactivado en la base de datos.")
         else:
             print("No se encontró el archivo físico en la ruta especificada.")
 
@@ -162,6 +159,7 @@ def eliminar_cancion(id_cancion):
     finally:
         if cur:
             cur.close()
+
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -215,4 +213,3 @@ while True:
         case _:
             print("Opción no válida. Intente de nuevo.")
 
-conn.close()
