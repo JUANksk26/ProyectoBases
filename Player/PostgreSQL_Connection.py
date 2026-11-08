@@ -57,7 +57,6 @@ def descargarMusica(URL,y):
         return
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
         informacion_descarga = ydl.extract_info(URL, download=False)
-
         ruta_absoluta_descarga = Path(fichero_descarga / informacion_descarga["title"])
         registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga, informacion_descarga["title"])#habria que registar el codigo de error tambien
 
