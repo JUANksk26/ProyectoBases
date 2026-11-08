@@ -47,8 +47,8 @@ def descargarMusica(URL,y):
             "preferredcodec": "mp3",
         }],
         "paths": {
-            "home" : fichero_descarga,
-            "temp" : fichero_descarga
+            "home" : str(fichero_descarga),
+            "temp" : str(fichero_descarga)
         },
     }
 
