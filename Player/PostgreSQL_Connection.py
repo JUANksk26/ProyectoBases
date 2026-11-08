@@ -56,11 +56,14 @@ def descargarMusica(URL,y):
     if y == True:
         return
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: # crea un objeto de la clase YoutubeDL con las configuraciones (ydl_opts) y se lo asigna a 'ydl'
-        informacion_descarga = ydl.extract_info(URL, download=False)
-        ruta_absoluta_descarga = Path(fichero_descarga / informacion_descarga["title"])
-        registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga, informacion_descarga["title"])#habria que registar el codigo de error tambien
 
-        registrarMusica(informacion_descarga, ruta_absoluta_descarga, URL)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
+        informacion_descarga = ydl.extract_info(URL, download=False)
+
+        ruta_absoluta_descarga = Path("dejelaSonar/%s", informacion_descarga["title"])
+
+        registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga.name, informacion_descarga["title"])#habria que registar el codigo de error tambien
+
+        registrarMusica(informacion_descarga, ruta_absoluta_descarga.name, URL)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
 # Actualiza la base de datos con la nueva cancion
 def registrarMusica(info, ubicacion_literal, url):
@@ -75,7 +78,7 @@ def registrarMusica(info, ubicacion_literal, url):
 
     cur.execute("""INSERT INTO cancion
                         (titulo, duracion_segundos, ruta_archivo, formato, url)
-                        VALUES (%s, %s, %s, %s)""", (nombre, duracion, ubicacion_literal, url))
+                        VALUES (%s, %s, %s, "mp3", %s)""", (nombre, duracion, ubicacion_literal, url))
     print("Se guardó en la base de datos.")
     conn.commit()
     # habria que agregar try, except y finally para cerrar el cursor y la conexion, pero por ahora lo dejo asi para que se vea que funciona
