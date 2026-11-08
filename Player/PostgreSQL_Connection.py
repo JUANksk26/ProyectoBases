@@ -60,10 +60,10 @@ def descargarMusica(URL,y):
         ruta_absoluta_descarga = Path(fichero_descarga / informacion_descarga["title"])
         registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga, informacion_descarga["title"])#habria que registar el codigo de error tambien
 
-        registrarMusica(informacion_descarga, ruta_absoluta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
+        registrarMusica(informacion_descarga, ruta_absoluta_descarga, URL)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
 # Actualiza la base de datos con la nueva cancion
-def registrarMusica(info, ubicacion_literal):
+def registrarMusica(info, ubicacion_literal, url):
     nombre = info["title"]
     duracion = info["duration"]
 
@@ -75,7 +75,7 @@ def registrarMusica(info, ubicacion_literal):
 
     cur.execute("""INSERT INTO cancion
                         (titulo, duracion_segundos, ruta_archivo, formato, url)
-                        VALUES (%s, %s, %s, 'mp3', %s)""", (nombre, duracion, ubicacion_literal, url))
+                        VALUES (%s, %s, %s, %s)""", (nombre, duracion, ubicacion_literal, url))
     print("Se guardó en la base de datos.")
     conn.commit()
     # habria que agregar try, except y finally para cerrar el cursor y la conexion, pero por ahora lo dejo asi para que se vea que funciona
