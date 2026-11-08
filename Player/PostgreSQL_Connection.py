@@ -59,10 +59,11 @@ def descargarMusica(URL,y):
         informacion_descarga = ydl.extract_info(URL, download=False)
 
         ruta_absoluta_descarga = fichero_descarga.joinpath(informacion_descarga["title"]).resolve()
+        ruta_real = str(ruta_absoluta_descarga) + " [" + informacion_descarga["id"] + "]" + ".mp3"
 
-        registrarRespuesta(ydl.download(URL), ruta_absoluta_descarga.name, informacion_descarga["title"])
+        registrarRespuesta(ydl.download(URL), ruta_real, informacion_descarga["title"])
 
-        registrarMusica(informacion_descarga, ruta_absoluta_descarga)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
+        registrarMusica(informacion_descarga, ruta_real)# algunas claves comunes de extract_info son: id, title, url, duration, formats.
 
 # Actualiza la base de datos con la nueva cancion
 def registrarMusica(info, ubicacion_literal):
