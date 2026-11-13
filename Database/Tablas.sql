@@ -1,172 +1,47 @@
-
-/*CREATE TABLE usuario (
-    id_usuario BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre VARCHAR(150) NOT NULL,
-    correo VARCHAR(254) NOT NULL UNIQUE,
-    fecha_registro TIMESTAMPTZ NOT NULL
-        DEFAULT CURRENT_TIMESTAMP
-);
-
-
-CREATE TABLE artista (
-    id_artista BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre_artistico VARCHAR(200) NOT NULL,
-    biografia TEXT
-);
-
-CREATE TABLE album (
-    id_album BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    titulo VARCHAR(200) NOT NULL,
-    fecha_lanzamiento DATE
-);
-
-CREATE TABLE album_artista (
-    id_album BIGINT NOT NULL,
-    id_artista BIGINT NOT NULL,
-
-    PRIMARY KEY (id_album, id_artista),
-
-    FOREIGN KEY (id_album)
-        REFERENCES album(id_album)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (id_artista)
-        REFERENCES artista(id_artista)
-        ON DELETE CASCADE
-);
-
-CREATE TABLE cancion (
-    id_cancion BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    titulo VARCHAR(200) NOT NULL,
-
-    duracion_segundos INTEGER NOT NULL
-        CHECK (duracion_segundos > 0),
-
-    ruta_archivo TEXT NOT NULL UNIQUE,
-    formato VARCHAR(10) NOT NULL,
-
-    id_album BIGINT,
-    numero_pista INTEGER
-        CHECK (numero_pista > 0),
-
-    FOREIGN KEY (id_album)
-        REFERENCES album(id_album)
-        ON DELETE SET NULL
-);
-
-CREATE UNIQUE INDEX uq_cancion_pista_album
-ON cancion (id_album, numero_pista)
-WHERE id_album IS NOT NULL
-  AND numero_pista IS NOT NULL;
-
-CREATE TABLE artista_cancion (
-    id_artista BIGINT NOT NULL,
-    id_cancion BIGINT NOT NULL,
-
-
-    PRIMARY KEY (id_artista, id_cancion),
-
-    FOREIGN KEY (id_artista)
-        REFERENCES artista(id_artista)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (id_cancion)
-        REFERENCES cancion(id_cancion)
-        ON DELETE CASCADE
-
-);
-
-CREATE TABLE genero (
-    id_genero BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL UNIQUE,
-    descripcion TEXT
-);
-
-CREATE TABLE cancion_genero (
-    id_cancion BIGINT NOT NULL,
-    id_genero BIGINT NOT NULL,
-
-    PRIMARY KEY (id_cancion, id_genero),
-
-    FOREIGN KEY (id_cancion)
-        REFERENCES cancion(id_cancion)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (id_genero)
-        REFERENCES genero(id_genero)
-        ON DELETE CASCADE
-);
-
-CREATE TABLE errores (
-    id_error BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    titulo varchar (100) NOT NULL UNIQUE,
-    ruta_archivo varchar (500) NOT NULL UNIQUE
-);
-
-CREATE TABLE historial_reproduccion (
-    id_historial BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_usuario BIGINT NOT NULL,
-    id_cancion BIGINT NOT NULL,
-    fecha_reproduccion TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    -- Si se elimina el usuario, se borra su historial
-    FOREIGN KEY (id_usuario)
-        REFERENCES usuario(id_usuario)
-        ON DELETE CASCADE,
-
-    -- Si se elimina la canción, se borra de los historiales
-    FOREIGN KEY (id_cancion)
-        REFERENCES cancion(id_cancion)
-        ON DELETE CASCADE
-);*/
-SELECT id_cancion,titulo FROM cancion
---ALTER TABLE cancion 
---ADD COLUMN activo BOOLEAN NOT NULL DEFAULT TRUE;
-
-/*hice esto para agregar la columna URL a la tabla cancion*/
-/*ALTER TABLE cancion 
-ADD COLUMN url TEXT NOT NULL DEFAULT 'sin_url';
-
-
-ALTER TABLE cancion 
-ALTER COLUMN url DROP DEFAULT;*/
 /*
---TABLA Y TRIGGERS DE AUDITORÍA (HISTORIAL DE BORRADOS Y DESACTIVACIONES)
-CREATE TABLE IF NOT EXISTS historial_eliminados (
-    id_historial SERIAL PRIMARY KEY,
-    id_cancion INT,
-    titulo_cancion VARCHAR(255),
-    fecha_eliminacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Habilitar la generación de UUIDs (nativo en PostgreSQL 13+)
+-- CREATE EXTENSION IF NOT EXISTS "pgcrypto"; -- (Descomentar si usas una versión anterior)
+
+CREATE TABLE Usuarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre_usuario VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    fecha_registro TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
---Trigger para guardar registro cuando se desactiva (Ocultar)
-CREATE OR REPLACE FUNCTION auditar_eliminacion_cancion()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.activo = FALSE AND OLD.activo = TRUE THEN
-        INSERT INTO historial_eliminados (id_cancion, titulo_cancion)
-        VALUES (OLD.id_cancion, OLD.titulo);
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+CREATE TABLE Artistas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre VARCHAR(255) NOT NULL
+);
 
-CREATE TRIGGER trigger_auditoria_eliminacion
-AFTER UPDATE ON cancion
-FOR EACH ROW
-EXECUTE FUNCTION auditar_eliminacion_cancion();
+CREATE TABLE Albumes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    titulo VARCHAR(255) NOT NULL,
+    artista_id UUID REFERENCES Artistas(id) ON DELETE CASCADE
+);
 
-CREATE OR REPLACE FUNCTION evitar_canciones_duplicadas()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM cancion WHERE url = NEW.url AND activo = TRUE) THEN
-        RAISE EXCEPTION 'Error: La URL de esta canción ya está registrada y activa.';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+CREATE TABLE Canciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    youtube_id VARCHAR(50) UNIQUE NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    artista_id UUID REFERENCES Artistas(id) ON DELETE SET NULL,
+    album_id UUID REFERENCES Albumes(id) ON DELETE SET NULL,
+    ruta_archivo TEXT NOT NULL,
+    duracion INTEGER -- Duración en segundos
+);
 
-CREATE TRIGGER trigger_evitar_duplicados
-BEFORE INSERT ON cancion
-FOR EACH ROW
-EXECUTE FUNCTION evitar_canciones_duplicadas();*/
+CREATE TABLE Registro_Descargas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID REFERENCES Usuarios(id) ON DELETE CASCADE,
+    cancion_id UUID REFERENCES Canciones(id) ON DELETE CASCADE,
+    fecha_descarga TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Historial_Reproducciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID REFERENCES Usuarios(id) ON DELETE CASCADE,
+    cancion_id UUID REFERENCES Canciones(id) ON DELETE CASCADE,
+    fecha_inicio TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    porcentaje_escuchado DECIMAL(4,3) CHECK (porcentaje_escuchado >= 0 AND porcentaje_escuchado <= 1)
+);
+*/
